@@ -18,12 +18,14 @@ namespace RESTfulProject.API.Controllers
         private readonly IExpenditureService _expenditureService;
         private readonly IAuthService _authService;
         private readonly IMapper _mapper;
+        private LinkGenerator _linkGenerator;
 
-        public ExpendituresController(IExpenditureService expenditureService, IAuthService authService, IMapper mapper)
+        public ExpendituresController(IExpenditureService expenditureService, IAuthService authService, IMapper mapper, LinkGenerator linkGenerator)
         {
             _expenditureService = expenditureService;
             _authService = authService;
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -53,8 +55,21 @@ namespace RESTfulProject.API.Controllers
             {
                 return NotFound();
             }
-
-            return _mapper.Map<ExpenditureViewModel>(expenditure);
+            var expenditureReturn = _mapper.Map<ExpenditureViewModel>(expenditure);
+            var links = new List<Link>
+            {
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(GetExpenditure), values: new { id }),
+                    "self",
+                    "GET"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(DeleteExpenditure), values: new { id }),
+                    "delete_expenditure",
+                    "DELETE"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(PutExpenditure), values: new { id }),
+                    "update_expenditure",
+                    "PUT")
+            };
+            expenditureReturn.Links = links;
+            return Ok(expenditureReturn);
         }
 
         [HttpPut("{id}")]

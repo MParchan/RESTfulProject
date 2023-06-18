@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using RESTfulProject.API.ViewModels;
 using RESTfulProject.Service.DTOs;
@@ -17,12 +18,14 @@ namespace RESTfulProject.API.Controllers
         private readonly IIncomeCategoryService _incomeCategoryService;
         private readonly IAuthService _authService;
         private readonly IMapper _mapper;
+        private LinkGenerator _linkGenerator;
 
-        public IncomeCategoriesController(IIncomeCategoryService incomeCategoryService, IAuthService authService, IMapper mapper)
+        public IncomeCategoriesController(IIncomeCategoryService incomeCategoryService, IAuthService authService, IMapper mapper, LinkGenerator linkGenerator)
         {
             _incomeCategoryService = incomeCategoryService;
             _authService = authService;
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -53,7 +56,21 @@ namespace RESTfulProject.API.Controllers
                 return NotFound();
             }
 
-            return _mapper.Map<IncomeCategoryViewModel>(incomeCategory);
+            var incomeCategoryReturn = _mapper.Map<IncomeCategoryViewModel>(incomeCategory);
+            var links = new List<Link>
+            {
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(GetIncomeCategory), values: new { id }),
+                    "self",
+                    "GET"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(DeleteIncomeCategory), values: new { id }),
+                    "delete_income_category",
+                    "DELETE"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(PutIncomeCategory), values: new { id }),
+                    "update_income_category",
+                    "PUT")
+            };
+            incomeCategoryReturn.Links = links;
+            return Ok(incomeCategoryReturn);
         }
 
         [HttpPut("{id}")]

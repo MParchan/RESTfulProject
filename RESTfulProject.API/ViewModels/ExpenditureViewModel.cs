@@ -11,5 +11,7 @@ namespace RESTfulProject.API.ViewModels
         public string Comment { get; set; }
         public DateTime Date { get; set; }
         public virtual ExpenditureCategoryViewModel ExpenditureCategory { get; set; }
+
+        public List<Link> Links { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using RESTfulProject.API.ViewModels;
 using RESTfulProject.Service.DTOs;
@@ -18,12 +19,14 @@ namespace RESTfulProject.API.Controllers
         private readonly IIncomeService _incomeService;
         private readonly IAuthService _authService;
         private readonly IMapper _mapper;
+        private LinkGenerator _linkGenerator;
 
-        public IncomesController(IIncomeService incomeService, IAuthService authService, IMapper mapper)
+        public IncomesController(IIncomeService incomeService, IAuthService authService, IMapper mapper, LinkGenerator linkGenerator)
         {
             _incomeService = incomeService;
             _authService = authService;
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -53,8 +56,21 @@ namespace RESTfulProject.API.Controllers
             {
                 return NotFound();
             }
-
-            return _mapper.Map<IncomeViewModel>(income);
+            var incomeReturn = _mapper.Map<IncomeViewModel>(income);
+            var links = new List<Link>
+            {
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(GetIncome), values: new { id }),
+                    "self",
+                    "GET"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(DeleteIncome), values: new { id }),
+                    "delete_income",
+                    "DELETE"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(PutIncome), values: new { id }),
+                    "update_income",
+                    "PUT")
+            };
+            incomeReturn.Links = links;
+            return Ok(incomeReturn);
         }
 
         [HttpPut("{id}")]

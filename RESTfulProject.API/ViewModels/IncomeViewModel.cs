@@ -9,5 +9,7 @@
         public string Comment { get; set; }
         public DateTime Date { get; set; }
         public virtual IncomeCategoryViewModel IncomeCategory { get; set; }
+        
+        public List<Link> Links { get; set; }
     }
 }

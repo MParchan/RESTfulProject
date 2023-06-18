@@ -18,12 +18,14 @@ namespace RESTfulProject.API.Controllers
         private readonly IExpenditureCategoryService _expenditureCategoryService;
         private readonly IAuthService _authService;
         private readonly IMapper _mapper;
+        private LinkGenerator _linkGenerator;
 
-        public ExpenditureCategoriesController(IExpenditureCategoryService expenditureCategoryService, IAuthService authService, IMapper mapper)
+        public ExpenditureCategoriesController(IExpenditureCategoryService expenditureCategoryService, IAuthService authService, IMapper mapper, LinkGenerator linkGenerator)
         {
             _expenditureCategoryService = expenditureCategoryService;
             _authService = authService;
             _mapper = mapper;
+            _linkGenerator = linkGenerator;
         }
 
         [HttpGet]
@@ -54,7 +56,21 @@ namespace RESTfulProject.API.Controllers
                 return NotFound();
             }
 
-            return _mapper.Map<ExpenditureCategoryViewModel>(expenditureCategory);
+            var expenditureCategoryReturn = _mapper.Map<ExpenditureCategoryViewModel>(expenditureCategory);
+            var links = new List<Link>
+            {
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(GetExpenditureCategory), values: new { id }),
+                    "self",
+                    "GET"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(DeleteExpenditureCategory), values: new { id }),
+                    "delete_expenditure_category",
+                    "DELETE"),
+                new Link(_linkGenerator.GetUriByAction(HttpContext, nameof(PutExpenditureCategory), values: new { id }),
+                    "update_expenditure_category",
+                    "PUT")
+            };
+            expenditureCategoryReturn.Links = links;
+            return Ok(expenditureCategoryReturn);
         }
 
         [HttpPut("{id}")]
